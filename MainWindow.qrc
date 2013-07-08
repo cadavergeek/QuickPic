@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/delete.png</file>
+        <file>images/group.png</file>
+        <file>images/open.next.png</file>
+        <file>images/open.previous.png</file>
+        <file>images/rotate.left.png</file>
+        <file>images/rotate.right.png</file>
+        <file>images/zoom.in.png</file>
+        <file>images/zoom.out.png</file>
+    </qresource>
+</RCC>
