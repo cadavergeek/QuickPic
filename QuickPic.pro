@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QuickPic
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         MainWindow.cpp
 
@@ -21,3 +20,5 @@ FORMS    += MainWindow.ui
 
 RESOURCES += \
     MainWindow.qrc
+
+CONFIG += c++11
