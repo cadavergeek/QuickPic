@@ -5,11 +5,12 @@
 #include <QPixmap>
 #include <QKeyEvent>
 #include <QStandardPaths>
+#include <QSettings>
 
 #define TOOLBAR_HEIGHT 50
 
 //----------------------------------------------------------------------------------------------------------------------------------
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QString *path, QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
   qApp->installEventFilter(this);
@@ -24,9 +25,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   pictScroller = new QScrollArea(pictContainer);
   pictScroller->setWidget(pictLabel);
 
-  QStringList args = qApp->arguments();
-  QFileInfo qfi(args.at(1));
-  LoadPath(qfi);
+  if(path != NULL)
+  {
+    QFileInfo qfi(*path);
+    LoadPath(qfi);
+  }
+  else
+  {
+    QStringList args = qApp->arguments();
+    QFileInfo qfi(args.at(1));
+    LoadPath(qfi);
+  }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
@@ -42,7 +51,7 @@ void MainWindow::LoadPath(QFileInfo &qfi)
   if(qfi.exists() == false) return;
   if(qfi.isDir())
   {
-      currDirectory = qfi.absolutePath();
+      currDirectory = qfi.absoluteFilePath();
       ReadDirectory();
       OffsetIndex(1);
   }
@@ -71,6 +80,12 @@ void MainWindow::ReadDirectory()
   QDir qd(currDirectory);
   QStringList filters; filters << "*.jpg" << "*.png";
   currFileList = qd.entryInfoList(filters, QDir::Files | QDir::NoDot | QDir::NoDotDot | QDir::Readable, QDir::Name);
+  QFileInfoList qfo = qd.entryInfoList();
+  for(int i=0; i<qfo.size(); i++)
+  {
+    QString filepath = qfo.at(i).absoluteFilePath();
+    filepath += ".";
+  }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
@@ -111,7 +126,7 @@ void MainWindow::on_btnDelete_clicked()      { DeleteFile();    } // (no shortcu
 
 //----------------------------------------------------------------------------------------------------------------------------------
 //Global keyboard handler
-bool MainWindow::eventFilter(QObject *obj, QEvent *qe)
+bool MainWindow::eventFilter(QObject *, QEvent *qe)
 {
   if(qe->type() == QEvent::KeyRelease)
   {
@@ -130,8 +145,15 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *qe)
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
+//Window close event
+void MainWindow::closeEvent(QCloseEvent *)
+{
+  GeometrySave();
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------
 //Window resize events
-void MainWindow::resizeEvent(QResizeEvent *qre)
+void MainWindow::resizeEvent(QResizeEvent *)
 {
   if(currZoom < 1)
     CalcFitZoom();
@@ -267,4 +289,34 @@ void MainWindow::ResizePicture()
   if(requestedHeight < (availableHeight+2)) { scrollY = (availableHeight-requestedHeight)>>1; scrollHeight = requestedHeight+2; }
   pictScroller->setGeometry(scrollX, scrollY, scrollWidth, scrollHeight);
   pictLabel->resize(requestedWidth, requestedHeight);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------
+void MainWindow::GeometrySave()
+{
+  QSettings set("samus.org", "quickpic");
+  set.beginGroup("mainwindow");
+  set.setValue("geometry", saveGeometry());
+  set.setValue("savestate", saveState());
+  set.setValue("maximized", isMaximized());
+  if(!isMaximized())
+  {
+    set.setValue("pos", pos());
+    set.setValue("size", size());
+  }
+  set.endGroup();
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------
+void MainWindow::GeometryLoad()
+{
+  QSettings set("samus.org", "quickpic");
+  set.beginGroup("mainwindow");
+  restoreGeometry(set.value("geometry", saveGeometry()).toByteArray());
+  restoreState(set.value("savestate",saveState()).toByteArray());
+  move(set.value("pos",pos()).toPoint());
+  resize(set.value("size",size()).toSize());
+  if(set.value("maximized",isMaximized()).toBool())
+    showMaximized();
+  set.endGroup();
 }

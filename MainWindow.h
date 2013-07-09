@@ -17,8 +17,10 @@ class MainWindow : public QMainWindow
   Q_OBJECT
   
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QString *path = NULL, QWidget *parent = NULL);
   ~MainWindow();
+  void GeometrySave();
+  void GeometryLoad();
   
 private slots:
   void on_btnRotateLeft_clicked();
@@ -33,6 +35,7 @@ private slots:
 protected:
   void resizeEvent(QResizeEvent *qre);
   bool eventFilter(QObject *obj, QEvent *qe);
+  void closeEvent(QCloseEvent *);
 
 private:
   void LoadPath(QFileInfo &qfi);
