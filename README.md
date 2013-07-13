@@ -15,4 +15,5 @@ Requires
 
 License
 -------
-* BSD
+* BSD*
+* *Except for PNGs under the /images directory. Those are all totally stolen from various internet locations, and probably shouldn't be redistributed.
